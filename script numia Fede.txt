@@ -1,0 +1,32 @@
+@echo off
+setlocal
+
+:: Ruta al ejecutable del programa
+set "programPath= "C:\Program Files\debPlayerWeb-v3.28.2-win32\debPlayerWeb\debPlayerWeb.exe"\debPlayerWeb.exe"
+set "programName=\debPlayerWeb.exe"
+
+:loop
+echo Verificando si %programName% está respondiendo...
+
+:: Verifica si el programa está en ejecución
+tasklist /FI "IMAGENAME eq %programName%" | find /I "%programName%" >nul
+if errorlevel 1 (
+    echo El programa no está en ejecución. Iniciando...
+    start "" "%programPath%"
+) else (
+    :: Verifica si está sin respuesta (status "Not Responding")
+    for /f "tokens=1,2,*" %%a in ('tasklist /v /fi "imagename eq %programName%" ^| find /i "%programName%"') do (
+        echo Estado: %%c
+        echo %%c | find /i "No responde" >nul
+        if not errorlevel 1 (
+            echo El programa no responde. Cerrando e iniciando...
+            taskkill /f /im "%programName%"
+            timeout /t 3 >nul
+            start "" "%programPath%"
+        )
+    )
+)
+
+:: Espera 10 segundos antes de volver a comprobar
+timeout /t 10 >nul
+goto loop
